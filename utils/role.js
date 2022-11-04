@@ -7,7 +7,11 @@ const role = {
             }
         })
         .then((response) => response.json())
-        .then((data) => console.table(data.data))
+        .then((data) => {
+            console.log('\n \n');
+            console.table(data.data)
+            console.log('\n \n');
+        })
         .catch((error) => console.error(error))
     },
     handleAddRole: () => {

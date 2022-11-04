@@ -1,5 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
+const { mainModule } = require('process');
 const menu = require('./utils/menu');
 require('dotenv').config();
 
@@ -13,11 +14,15 @@ const db = mysql.createConnection(
     {
         host: 'localhost',
         user: 'root',
-        password: '',
+        password: 'xortonryla!',
         database: 'employees_db'
     },
     console.log(`Connected to the ${process.env.DB_NAME} database.`)
 );
+
+app.get('/', (req, res) => {
+    menu()
+})
 
 app.get('/api/department', (req, res) => {
     const sql = `SELECT id, name FROM department`;
@@ -71,4 +76,4 @@ app.listen(PORT, () => {
     console.log(`App listening at http://localhost:${PORT}`)
 })
 
-menu()
+menu();
