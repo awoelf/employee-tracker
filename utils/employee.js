@@ -1,3 +1,5 @@
+const cTable = require('console.table');
+
 const employee = {
     handleViewEmp: () => {
         fetch('http://localhost:3001/api/employee', {
@@ -7,7 +9,10 @@ const employee = {
             }
         })
         .then((response) => response.json())
-        .then((data) => console.table(data.data))
+        .then((data) => {
+            console.log('\n');
+            console.table(data.data);
+        })
         .catch((error) => console.error(error))
     },
     handleAddEmp: () => {

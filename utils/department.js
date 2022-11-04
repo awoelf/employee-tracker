@@ -9,7 +9,10 @@ const department = {
             }
         })
         .then((response) => response.json())
-        .then((data) => console.table(data.data))
+        .then((data) => {
+            console.log('\n');
+            console.table(data.data);
+        })
         .catch((error) => console.error(error))
     },
     handleAddDept: () => {

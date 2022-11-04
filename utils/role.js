@@ -1,3 +1,5 @@
+const cTable = require('console.table');
+
 const role = {
     handleViewRole: () => {
         fetch('http://localhost:3001/api/role', {
@@ -8,9 +10,8 @@ const role = {
         })
         .then((response) => response.json())
         .then((data) => {
-            console.log('\n \n');
-            console.table(data.data)
-            console.log('\n \n');
+            console.log('\n');
+            console.table(data.data);
         })
         .catch((error) => console.error(error))
     },

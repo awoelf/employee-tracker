@@ -1,6 +1,5 @@
 const express = require('express');
 const mysql = require('mysql2');
-const { mainModule } = require('process');
 const menu = require('./utils/menu');
 require('dotenv').config();
 
@@ -21,7 +20,7 @@ const db = mysql.createConnection(
 );
 
 app.get('/', (req, res) => {
-    menu()
+    res.json(200);
 })
 
 app.get('/api/department', (req, res) => {
@@ -73,7 +72,7 @@ app.get('/api/role', (req, res) => {
 })
 
 app.listen(PORT, () => {
-    console.log(`App listening at http://localhost:${PORT}`)
+    // console.log(`App listening at http://localhost:${PORT}`)
 })
 
 menu();

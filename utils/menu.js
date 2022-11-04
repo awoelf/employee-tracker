@@ -2,31 +2,45 @@ const inquirer = require('inquirer');
 const department = require('./department');
 const role = require('./role');
 const employee = require('./employee');
-
 const ansiEscapes = require('ansi-escapes');
 
-const menu = () => {
+const choices = [
+    'View all departments',
+    'View all roles',
+    'View all employees',
+    'Add a department',
+    'Add a role',
+    'Add an employee',
+    'Update an employee role',
+    'Quit'
+]
+
+const initMessage = `
+╔═══╗        ╔╗                      ╔════╗            ╔╗         
+║╔══╝        ║║                      ║╔╗╔╗║            ║║         
+║╚══╗╔╗╔╗╔══╗║║ ╔══╗╔╗ ╔╗╔══╗╔══╗    ╚╝║║╚╝╔═╗╔══╗ ╔══╗║║╔╗╔══╗╔═╗
+║╔══╝║╚╝║║╔╗║║║ ║╔╗║║║ ║║║╔╗║║╔╗║      ║║  ║╔╝╚ ╗║ ║╔═╝║╚╝╝║╔╗║║╔╝
+║╚══╗║║║║║╚╝║║╚╗║╚╝║║╚═╝║║║═╣║║═╣     ╔╝╚╗ ║║ ║╚╝╚╗║╚═╗║╔╗╗║║═╣║║ 
+╚═══╝╚╩╩╝║╔═╝╚═╝╚══╝╚═╗╔╝╚══╝╚══╝     ╚══╝ ╚╝ ╚═══╝╚══╝╚╝╚╝╚══╝╚╝ 
+         ║║         ╔═╝║                                          
+         ╚╝         ╚══╝                                          
+Please choose an option below:`
+
+const menu = (message = initMessage) => {
     try {
+        process.removeAllListeners('warning')
+        process.stdout.write(ansiEscapes.clearTerminal);
         inquirer.prompt([
             {
                 type: 'list',
-                message: 'Welcome to the Employee Tracker. Please choose an option:',
-                choices: [
-                    'View all departments',
-                    'View all roles',
-                    'View all employees',
-                    'Add a department',
-                    'Add a role',
-                    'Add an employee',
-                    'Update an employee role',
-                    'Quit'
-                ],
-                name: 'choice',
+                message: `${message}`,
+                choices: choices,
+                name: 'selection',
             }
         ])
         .then((data) => {
-            console.log(data.choice);
-            switch (data.choice) {
+
+            switch (data.selection) {
                 case 'View all departments':
                     department.handleViewDept();
                     break;
@@ -44,16 +58,31 @@ const menu = () => {
                     break;
                 case 'Add an employee':
                     employee.handleAddEmp();
-                    break;          
+                    break;
+                case 'Quit':
+                    process.exit(0);
+                    break;       
             }
         })
         .then(() => {
-            menu();
+            anotherOption();
         })
     } catch {
         return('Menu error');
     }
 };
 
+const anotherOption = () => {
+    inquirer.prompt([
+        {
+            type: 'confirm',
+            message: 'Would you like to choose another option?',
+            name: 'selection',
+        }
+    ])
+    .then((data) => {
+        data.selection ? menu('Please choose an option') : process.exit(0);
+    })
+}
 
 module.exports = menu;
