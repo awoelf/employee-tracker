@@ -1,8 +1,8 @@
-const inquirer = require('inquirer');
-const department = require('./department');
-const role = require('./role');
-const employee = require('./employee');
-const ansiEscapes = require('ansi-escapes');
+const fetch = require("node-fetch");
+const term = require('terminal-kit').terminal;
+const cTable = require('console.table');
+const nanoid = require("nanoid");
+
 
 const choices = [
     'View all departments',
@@ -13,76 +13,172 @@ const choices = [
     'Add an employee',
     'Update an employee role',
     'Quit'
-]
+];
 
-const initMessage = `
-╔═══╗        ╔╗                      ╔════╗            ╔╗         
-║╔══╝        ║║                      ║╔╗╔╗║            ║║         
-║╚══╗╔╗╔╗╔══╗║║ ╔══╗╔╗ ╔╗╔══╗╔══╗    ╚╝║║╚╝╔═╗╔══╗ ╔══╗║║╔╗╔══╗╔═╗
-║╔══╝║╚╝║║╔╗║║║ ║╔╗║║║ ║║║╔╗║║╔╗║      ║║  ║╔╝╚ ╗║ ║╔═╝║╚╝╝║╔╗║║╔╝
-║╚══╗║║║║║╚╝║║╚╗║╚╝║║╚═╝║║║═╣║║═╣     ╔╝╚╗ ║║ ║╚╝╚╗║╚═╗║╔╗╗║║═╣║║ 
-╚═══╝╚╩╩╝║╔═╝╚═╝╚══╝╚═╗╔╝╚══╝╚══╝     ╚══╝ ╚╝ ╚═══╝╚══╝╚╝╚╝╚══╝╚╝ 
-         ║║         ╔═╝║                                          
-         ╚╝         ╚══╝                                          
-Please choose an option below:`
-
-const menu = (message = initMessage) => {
-    try {
-        process.removeAllListeners('warning')
-        process.stdout.write(ansiEscapes.clearTerminal);
-        inquirer.prompt([
-            {
-                type: 'list',
-                message: `${message}`,
-                choices: choices,
-                name: 'selection',
-            }
-        ])
-        .then((data) => {
-
-            switch (data.selection) {
-                case 'View all departments':
-                    department.handleViewDept();
-                    break;
-                case 'View all roles':
-                    role.handleViewRole();
-                    break;
-                case 'View all employees':
-                    employee.handleViewEmp();
-                    break;
-                case 'Add a department':
-                    department.handleAddDept();
-                    break;
-                case 'Add a role':
-                    role.handleAddRole();
-                    break;
-                case 'Add an employee':
-                    employee.handleAddEmp();
-                    break;
-                case 'Quit':
-                    process.exit(0);
-                    break;       
-            }
-        })
-        .then(() => {
-            anotherOption();
-        })
-    } catch {
-        return('Menu error');
-    }
+const menuOptions = {
+    y: 2,
 };
 
-const anotherOption = () => {
-    inquirer.prompt([
-        {
-            type: 'confirm',
-            message: 'Would you like to choose another option?',
-            name: 'selection',
-        }
-    ])
-    .then((data) => {
-        data.selection ? menu('Please choose an option') : process.exit(0);
+const menu = (message = 'Please choose an option below:') => {
+    term.clear().moveTo(1, 1);
+    term.green(message);
+    term.singleColumnMenu(choices, menuOptions, (err, res) => { 
+        switch (res.selectedIndex) {
+            // View all departments
+            case 0:  
+                handleViewDept();
+                break;
+            // View all roles
+            case 1:
+                handleViewRole();
+                break;
+            // View all employees
+            case 2:
+                handleViewEmp();
+                break;
+            // Add a department
+            case 3:
+                handleAddDept();
+                break;
+            // Add a role
+            case 4:
+                
+                // handleAddRole();
+                break;
+            // Add an employee
+            case 5:
+                handleViewDept();
+                break;
+            // Update an employee role
+            case 6:
+                handleViewDept();
+                break;
+            // Quit
+            case 7:
+                term.clear(); 
+                process.exit(0)
+        }        
     })
 }
+
+const handleViewDept = () => {
+    fetch('http://localhost:3001/api/department', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        const table = cTable.getTable(data.data)
+        term.moveTo(2, 10).green(table);
+
+    })
+    .then(menu())
+    .catch((error) => console.error(error))
+}
+
+const handleAddDept = async () => {
+    term('What is the name of the department?').eraseDisplayBelow();
+    term.inputField((err, deptName) => {
+        if (err) {
+            console.error(err);
+        }
+        
+        fetch('http://localhost:3001/api/department', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({name: deptName, id: nanoid(4)})
+        })
+        .then((res) => res.json())
+        .then(menu())
+        .catch((err) => console.error(err))
+    })
+}
+
+const getAllDepts = () => {
+    fetch('http://localhost:3001/api/departments', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        let nameList = []
+        data.data.forEach(item => {
+            nameList.push(item.name);
+        });
+        return nameList;
+    })
+}
+
+
+
+const handleViewRole = () => {
+    fetch('http://localhost:3001/api/role', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        const table = cTable.getTable(data.data)
+        term.moveTo(2, 10).green(table);
+
+    })
+    .then(menu())
+    .catch((error) => console.error(error))
+}
+
+const handleAddRole = async () => {
+    console.log(getAllDepts())
+    term('What is the name of the role?');
+    const roleName = await term.inputField().promise;
+    term.eraseLine().moveTo(1, 10);
+    term('What is the salary of the role?');
+    const salary = await term.inputField().promise;
+    term.eraseLine().moveTo(1, 10);
+    term('Which department is the role in?');
+    const department = await term.singleColumnMenu(getAllDepts()).promise;
+    process.exit(0);
+}
+
+
+
+const handleViewEmp = () => {
+    fetch('http://localhost:3001/api/employee', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        const table = cTable.getTable(data.data)
+        term.moveTo(2, 10).green(table);
+
+    })
+    .then(menu())
+    .catch((error) => console.error(error))
+}
+
+const handleAddEmp = () => {
+
+}
+
+const getId = (name) => {
+    fetch(`http://localhost:3001/api/department/${name}`, {
+        method: 'GET',
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        return data.data[0].id;
+    })
+}
+
 
 module.exports = menu;

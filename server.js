@@ -39,6 +39,54 @@ app.get('/api/department', (req, res) => {
     })
 })
 
+app.get('/api/departments', (req, res) => {
+    db.query('SELECT name FROM department', (err, rows) => {
+        if (err) {
+            res.status(500).json({error: err.message});
+            return;
+        }
+        res.json({
+            message: 'Success',
+            data: rows
+        });
+        return rows;
+    })
+})
+
+app.get('/api/department/:name', (req, res) => {
+    if (req.params.name) {
+        db.query(`SELECT id FROM department WHERE name='${req.params.name}'`, (err, rows) => {
+            if (err) {
+                res.status(500).json({error: err.message});
+                return;
+            }
+            res.json({
+                message: 'Success',
+                data: rows
+            });
+            return rows;
+        })
+    }
+
+    
+})
+
+app.post('/api/department', (req, res) => {
+    const {name, id} = req.body;
+    const sql = `INSERT INTO department (id, name) VALUES ('${id}', '${name}')`;
+    db.query(sql, (err, result) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        res.json({
+            message: 'success',
+            data: req.body,
+        })
+    })
+})
+
+
 app.get('/api/employee', (req, res) => {
     const sql = `SELECT id, first_name, last_name, role_id, manager_id FROM employee`;
     
@@ -75,4 +123,4 @@ app.listen(PORT, () => {
     // console.log(`App listening at http://localhost:${PORT}`)
 })
 
-menu();
+menu('Welcome to the Employee Tracker! Please choose an option below:');
