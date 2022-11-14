@@ -2,6 +2,7 @@ const fetch = require("node-fetch");
 const term = require('terminal-kit').terminal;
 const cTable = require('console.table');
 const nanoid = require("nanoid");
+const { response } = require("express");
 
 
 const choices = [
@@ -42,8 +43,7 @@ const menu = (message = 'Please choose an option below:') => {
                 break;
             // Add a role
             case 4:
-                
-                // handleAddRole();
+                handleAddRole();
                 break;
             // Add an employee
             case 5:
@@ -98,21 +98,19 @@ const handleAddDept = async () => {
     })
 }
 
-const getAllDepts = () => {
-    fetch('http://localhost:3001/api/departments', {
+const getAllDepts = async () => {
+    const response = await fetch('http://localhost:3001/api/departments', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
         }
     })
-    .then((res) => res.json())
-    .then((data) => {
-        let nameList = []
-        data.data.forEach(item => {
-            nameList.push(item.name);
-        });
-        return nameList;
-    })
+    const data = await response.json();
+    let nameList = []
+    data.data.forEach(item => {
+        nameList.push(item.name);
+    });
+    return(nameList);
 }
 
 
@@ -135,7 +133,6 @@ const handleViewRole = () => {
 }
 
 const handleAddRole = async () => {
-    console.log(getAllDepts())
     term('What is the name of the role?');
     const roleName = await term.inputField().promise;
     term.eraseLine().moveTo(1, 10);
@@ -143,8 +140,11 @@ const handleAddRole = async () => {
     const salary = await term.inputField().promise;
     term.eraseLine().moveTo(1, 10);
     term('Which department is the role in?');
-    const department = await term.singleColumnMenu(getAllDepts()).promise;
-    process.exit(0);
+    const department = term.singleColumnMenu(await getAllDepts(), (err, res) => {
+        return getId(res.selectedText);
+    });
+
+    
 }
 
 
@@ -170,14 +170,12 @@ const handleAddEmp = () => {
 
 }
 
-const getId = (name) => {
-    fetch(`http://localhost:3001/api/department/${name}`, {
+const getId = async (name) => {
+    const reponse = await fetch(`http://localhost:3001/api/department/${name}`, {
         method: 'GET',
     })
-    .then((res) => res.json())
-    .then((data) => {
-        return data.data[0].id;
-    })
+    const data = await response.json();
+    return data.data[0].id;
 }
 
 
