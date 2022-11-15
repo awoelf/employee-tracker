@@ -1,10 +1,12 @@
 const fetch = require("node-fetch");
-const term = require('terminal-kit').terminal;
 const cTable = require('console.table');
 const nanoid = require("nanoid");
 
+// terminal-kit is used instead of inquirer because of greater functionality
+// with menus and input
+const term = require('terminal-kit').terminal;
 
-
+// Menu choices
 const choices = [
     'View all departments',
     'View all roles',
@@ -16,10 +18,12 @@ const choices = [
     'Quit'
 ];
 
+// Option that places the menu on line 2, below the message prompt
 const menuOptions = {
     y: 2,
 };
 
+// main menu function
 const menu = (message = 'Please choose an option below:') => {
     term.clear().moveTo(1, 1);
     term.green(message);
@@ -61,6 +65,7 @@ const menu = (message = 'Please choose an option below:') => {
     })
 }
 
+// Displays all departments
 const handleViewDept = () => {
     fetch('http://localhost:3001/api/department', {
         method: 'GET',
@@ -78,13 +83,14 @@ const handleViewDept = () => {
     .catch((error) => console.error(error))
 }
 
+
+// Adds a department
 const handleAddDept = async () => {
     term('What is the name of the department?').eraseDisplayBelow();
     term.inputField((err, deptName) => {
         if (err) {
             console.error(err);
         }
-        
         fetch('http://localhost:3001/api/department', {
             method: 'POST',
             headers: {
@@ -98,6 +104,7 @@ const handleAddDept = async () => {
     })
 }
 
+// Displays all roles
 const handleViewRole = () => {
     fetch('http://localhost:3001/api/role', {
         method: 'GET',
@@ -114,6 +121,7 @@ const handleViewRole = () => {
     .catch((error) => console.error(error))
 }
 
+// Adds a new role
 const handleAddRole = async () => {
     term.moveTo(1, 12).eraseDisplayBelow();
     term('What is the name of the role?');
@@ -125,7 +133,9 @@ const handleAddRole = async () => {
 
     term.eraseLine().moveTo(1, 12).eraseDisplayBelow();
     term('Which department is the role in?');
+    // Gets a list of all departments to use as menu choices
     const department = await term.singleColumnMenu(await getAllItems('department')).promise;
+    // Gets the id of the selected department
     const id = await getId('department', await department.selectedText);
 
     fetch('http://localhost:3001/api/role', {
@@ -135,15 +145,17 @@ const handleAddRole = async () => {
         },
         body: JSON.stringify({
             name: roleName, 
-            id: nanoid(4),
+            id: nanoid(4), // nanoid creates a 4 character id
             salary: salary,
             department_id: id
         })
     })
     .then((res) => res.json())
     .then(menu())    
+    .catch((err) => console.error(err))
 }
 
+// View all employees
 const handleViewEmp = () => {
     fetch('http://localhost:3001/api/employee', {
         method: 'GET',
@@ -154,13 +166,14 @@ const handleViewEmp = () => {
     .then((response) => response.json())
     .then((data) => {
         const table = cTable.getTable(data.data)
-        term.moveTo(2, 10).green(table);
+        term.moveTo(2, 12).green(table);
 
     })
     .then(menu())
     .catch((error) => console.error(error))
 }
 
+// Add a new employee
 const handleAddEmp = async () => {
     term.moveTo(1, 12).eraseDisplayBelow();
     term('What is the employee\'s first name?');
@@ -172,7 +185,9 @@ const handleAddEmp = async () => {
 
     term.eraseLine().moveTo(1, 12).eraseDisplayBelow();
     term('Which role is the employee in?');
+    // Gets a list of all roles to use as menu choices
     const role = await term.singleColumnMenu(await getAllItems('role')).promise;
+    // Gets the id associated with the role
     const id = await getId('role', await role.selectedText);
 
     term.eraseLine().moveTo(1, 12).eraseDisplayBelow();
@@ -194,34 +209,39 @@ const handleAddEmp = async () => {
     })
     .then((res) => res.json())
     .then(menu())
+    .catch((err) => console.error(err))
 }
 
+// Update the role of the employee
 const handleEmpUpdate = async () => {
     term.moveTo(1, 12).eraseDisplayBelow();
     term('What is the employee\'s name?');
+    // Gets a list of names of all employees
     const name = await term.singleColumnMenu(await getEmpNames()).promise;
-    console.log(await name.selectedText)
+    // Gets the id associated with the employee
+    const empId = await getEmpId(await name.selectedText.replace(/ /g,"_"))
 
+    term.eraseLine().moveTo(1, 12).eraseDisplayBelow();
+    term('What is the employee\'s new role?');
+    const role = await term.singleColumnMenu(await getAllItems('role')).promise;
+    const roleId = await getId('role', await role.selectedText);
 
-    // term.eraseLine().moveTo(1, 12).eraseDisplayBelow();
-    // term('What is the employee\'s new role?');
-    // const role = await term.singleColumnMenu(await getAllItems('role')).promise;
-    // const roleId = await getId('role', await role.selectedText);
-
-    // fetch('http://localhost:3001/api/employee', {
-    //     method: 'PUT',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //         role_id: roleId,
-    //         id: empId
-    //     })
-    // })
-    // .then((res) => res.json())
-    // .then(menu())
+    fetch('http://localhost:3001/api/employee', {
+        method: 'PUT', // Put method because updating existing data
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            role_id: roleId,
+            id: empId
+        })
+    })
+    .then((res) => res.json())
+    .then(menu())
+    .catch((err) => console.error(err))
 }
 
+// Gets the id from a given table and name
 const getId = async (table, name) => {
     const response = await fetch(`http://localhost:3001/api/${table}/${name}`, {
         method: 'GET',
@@ -234,6 +254,7 @@ const getId = async (table, name) => {
     return id;
 }
 
+// Gets all entries from a table
 const getAllItems = async (table) => {
     const response = await fetch(`http://localhost:3001/api/${table}`, {
         method: 'GET',
@@ -249,6 +270,7 @@ const getAllItems = async (table) => {
     return(nameList);
 }
 
+// Gets all employee names
 const getEmpNames = async () => {
     const response = await fetch(`http://localhost:3001/api/employee`, {
         method: 'GET',
@@ -259,13 +281,15 @@ const getEmpNames = async () => {
     const data = await response.json();
     let nameList = []
     data.data.forEach(item => {
+        // Each list entry consists of the employee's first and last name
         nameList.push(item.first_name + ' ' + item.last_name);
     });
     return(nameList);
 }
 
+// Gets id of employee name
 const getEmpId = async (empName) => {
-    const response = await fetch(`http://localhost:3001/api/${empName}`, {
+    const response = await fetch(`http://localhost:3001/api/employee/${empName}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
