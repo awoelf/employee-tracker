@@ -12,9 +12,16 @@ The Employee Tracker is a content management system (CMS) that helps the user ke
 
 ### Features
 
-- View, add, and update data
-- User-friendly menu
-- Formatted tables
+* View, add, and update data
+* User-friendly menu
+* Formatted tables
+
+### Built With
+* [Express](https://www.npmjs.com/package/express)
+* [nanoid](https://www.npmjs.com/package/nanoid)
+* [terminal-kit](https://www.npmjs.com/package/terminal-kit)
+* [console.table](https://www.npmjs.com/package/console.table)
+* [mysql2](https://www.npmjs.com/package/mysql2)
 
 ## Geting Started
 
