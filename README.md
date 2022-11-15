@@ -3,6 +3,8 @@
 
 # Employee Tracker
 
+![screen-gif](/assets/employee-tracker.gif)
+
 ## About the Project
 
 The Employee Tracker is a content management system (CMS) that helps the user keep track of departments, roles, and employees all in one terminal.
